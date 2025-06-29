@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body class="dark-theme">
+    <div class="dashboard-wrapper">
+        <header class="header">
+            <div class="header-logo">
+                <a href="dashboard.html"><img src="assets/logo-adaptive.svg" alt="Logo"></a>
+            </div>
+            <div class="header-user">
+                <span id="welcome-message"></span>
+                <a href="#" id="logout-button" title="Logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <button id="theme-toggle" title="Toggle theme">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+        </header>
+        <main class="main-content">
+            <div class="main-header">
+                <h1 id="dashboard-title"></h1>
+            </div>
+            <div class="kpi-grid" id="kpi-grid-container"></div>
+            <div class="chart-container">
+                <h3 id="chart-title"></h3>
+                <div class="chart-placeholder"></div>
+            </div>
+        </main>
+    </div>
+    <script>
+        (function() {
+            function initializeDashboard() {
+                const dashboardData = {
+                    admin: {
+                        title: 'Admin Dashboard',
+                        chartTitle: 'Quarterly Performance',
+                        cards: [ { title: 'Total Revenue', icon: 'fa-dollar-sign', value: '$1,250,340', footer: '+5.4% from last month' }, { title: 'New Users', icon: 'fa-users', value: '2,450', footer: '+180 this week' }, { title: 'Server Status', icon: 'fa-server', value: 'Online', footer: 'All systems operational' }, { title: 'Open Tickets', icon: 'fa-ticket', value: '12', footer: '3 urgent' } ]
+                    },
+                    user: {
+                        title: 'My Dashboard',
+                        chartTitle: 'My Recent Activity',
+                        cards: [ { title: 'Account Balance', icon: 'fa-wallet', value: '$2,150.75', footer: 'As of today' }, { title: 'Pending Invoices', icon: 'fa-file-invoice-dollar', value: '3', footer: 'Totaling $480.00' }, { title: 'My Profile', icon: 'fa-user', value: 'View', footer: 'Click to edit your details' }, { title: 'Support', icon: 'fa-headset', value: 'Contact', footer: 'We\'re here to help!' } ]
+                    }
+                };
+                const themeToggleButton = document.getElementById('theme-toggle');
+                const body = document.body;
+                const themeIcon = themeToggleButton.querySelector('i');
+                const applyTheme = (theme) => {
+                    body.className = '';
+                    body.classList.add(theme === 'light' ? 'light-theme' : 'dark-theme');
+                    if (themeIcon) {
+                        themeIcon.className = 'fa-solid';
+                        themeIcon.classList.add(theme === 'light' ? 'fa-moon' : 'fa-sun');
+                    }
+                };
+                themeToggleButton.addEventListener('click', () => {
+                    const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
+                    localStorage.setItem('theme', newTheme);
+                    applyTheme(newTheme);
+                });
+                const savedTheme = localStorage.getItem('theme') || 'dark';
+                applyTheme(savedTheme);
+                const loggedInUserString = localStorage.getItem('loggedInUser');
+                if (!loggedInUserString) {
+                    window.location.href = 'index.html';
+                    return; 
+                }
+                const loggedInUser = JSON.parse(loggedInUserString);
+                function renderDashboard(user) {
+                    const role = user.role;
+                    const data = dashboardData[role];
+                    if (!data) { window.location.href = 'index.html'; return; }
+                    document.title = data.title;
+                    document.getElementById('welcome-message').textContent = `Welcome, ${user.username}`;
+                    document.getElementById('dashboard-title').textContent = data.title;
+                    document.getElementById('chart-title').textContent = data.chartTitle;
+                    const kpiGrid = document.getElementById('kpi-grid-container');
+                    kpiGrid.innerHTML = ''; 
+                    data.cards.forEach(card => {
+                        const cardElement = document.createElement('div');
+                        cardElement.className = 'card';
+                        cardElement.innerHTML = `<div class="card-header"><span>${card.title}</span><i class="fa-solid ${card.icon}"></i></div><div class="card-value">${card.value}</div><div class="card-footer">${card.footer}</div>`;
+                        kpiGrid.appendChild(cardElement);
+                    });
+                }
+                renderDashboard(loggedInUser);
+                const logoutButton = document.getElementById('logout-button');
+                logoutButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    localStorage.removeItem('loggedInUser');
+                    window.location.href = 'index.html';
+                });
+            }
+            window.onload = initializeDashboard;
+        })();
+    </script>
+</body>
+</html>

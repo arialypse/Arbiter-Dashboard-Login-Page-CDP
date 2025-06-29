@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbiter Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+    <button id="theme-toggle" title="Toggle theme">
+        <i class="fa-solid fa-sun"></i>
+    </button>
+
+    <div class="login-container">
+        <div class="logo-container">
+            <center><img src="assets/logo-adaptive.svg" alt="Arbiter Logo"></center>
+        </div>
+        <form id="loginForm" class="login-form" novalidate>
+            <p class="subtitle">Welcome to Arbiter Dashboard</p>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" autocomplete="username" required>
+                <span class="error-message" id="username-error"></span>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" placeholder="Enter password" autocomplete="current-password" required>
+                    <i class="fa-solid fa-eye" id="togglePassword"></i>
+                </div>
+                <span class="error-message" id="password-error"></span>
+            </div>
+            <div class="form-group">
+                <button type="submit">Login</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        (function() {
+            // =================================================================
+            // MOCK USER DATABASE - EASY TO EDIT HERE
+            // =================================================================
+            const mockUsers = {
+                'admin': { password: 'admin', role: 'admin' },
+                'user': { password: 'user', role: 'user' }
+            };
+
+            function initializeApp() {
+                // --- ELEMENT SELECTORS ---
+                const body = document.body;
+                const themeToggleButton = document.getElementById('theme-toggle');
+                const loginForm = document.getElementById('loginForm');
+                const passwordInput = document.getElementById('password');
+                const togglePasswordIcon = document.getElementById('togglePassword');
+
+                if (!body || !themeToggleButton || !loginForm || !passwordInput || !togglePasswordIcon) {
+                    console.error('A critical element is missing from the HTML.');
+                    return;
+                }
+
+                // --- THEME SWITCHER LOGIC ---
+                const themeIcon = themeToggleButton.querySelector('i');
+                const applyTheme = (theme) => {
+                    body.className = '';
+                    body.classList.add(theme === 'light' ? 'light-theme' : 'dark-theme');
+                    if(themeIcon) {
+                        themeIcon.className = 'fa-solid';
+                        themeIcon.classList.add(theme === 'light' ? 'fa-moon' : 'fa-sun');
+                    }
+                };
+                
+                themeToggleButton.addEventListener('click', () => {
+                    const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
+                    localStorage.setItem('theme', newTheme);
+                    applyTheme(newTheme);
+                });
+
+                const savedTheme = localStorage.getItem('theme') || 'dark';
+                applyTheme(savedTheme);
+
+                // --- PASSWORD VISIBILITY TOGGLE LOGIC ---
+                togglePasswordIcon.addEventListener('click', () => {
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    togglePasswordIcon.className = 'fa-solid';
+                    togglePasswordIcon.classList.add(isPassword ? 'fa-eye-slash' : 'fa-eye');
+                });
+
+                // --- LOGIN FORM LOGIC ---
+                loginForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const usernameInput = document.getElementById('username');
+                    const passwordInputForSubmit = document.getElementById('password');
+                    const usernameError = document.getElementById('username-error');
+                    const passwordError = document.getElementById('password-error');
+
+                    usernameError.textContent = '';
+                    passwordError.textContent = '';
+                    usernameInput.classList.remove('input-error');
+                    passwordInputForSubmit.classList.remove('input-error');
+
+                    const username = usernameInput.value.trim();
+                    const password = passwordInputForSubmit.value.trim();
+                    
+                    let isValid = true;
+                    if (username === '') {
+                        usernameError.textContent = 'Please enter your username.';
+                        isValid = false;
+                    }
+                    if (password === '') {
+                        passwordError.textContent = 'Please enter your password.';
+                        isValid = false;
+                    }
+                    if (!isValid) return;
+
+                    const user = mockUsers[username];
+                    if (user && user.password === password) {
+                        const loggedInUser = { username: username, role: user.role };
+                        localStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+                        const loginButton = loginForm.querySelector('button[type="submit"]');
+                        loginButton.disabled = true;
+                        loginButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html'; 
+                        }, 1000);
+                    } else {
+                        passwordError.textContent = 'Invalid username or password.';
+                        usernameInput.classList.add('input-error');
+                        passwordInputForSubmit.classList.add('input-error');
+                    }
+                });
+            }
+
+            window.onload = initializeApp;
+        })();
+    </script>
+</body>
+</html>
